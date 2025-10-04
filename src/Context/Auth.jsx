@@ -16,7 +16,7 @@ export const ContextProvider = ({ children }) => {
   const login = (userData) => {
     setUserState(userData); // Update local state
     dispatch(setUser(userData)); // Dispatch to Redux
-    toast.success(`Welcome ${userData?.user?.nick_name || '-'}`);
+    toast.success(`Welcome ${userData?.nick_name || '-'}`);
   };
 
   const logout = () => {

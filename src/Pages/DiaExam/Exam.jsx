@@ -383,9 +383,9 @@ const Exam = () => {
 
                                             {/* Division Symbol */}
                                             <div className="flex flex-col items-center">
-                                                <div className="w-12 h-0.5 bg-gray-400 mb-1"></div>
+                                                <div className="w-10 h-0.5 bg-gray-400 mb-1"></div>
                                                 <FaDivide className="text-gray-500 text-sm" />
-                                                <div className="w-12 h-0.5 bg-gray-400 mt-1"></div>
+                                                <div className="w-10 h-0.5 bg-gray-400 mt-1"></div>
                                             </div>
 
                                             {/* Denominator Input */}

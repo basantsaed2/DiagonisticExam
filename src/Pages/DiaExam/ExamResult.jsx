@@ -898,7 +898,7 @@ const ExamResult = () => {
                 {/* Recommendations Section */}
                 {examData.recommanditions && examData.recommanditions.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-lg p-8 mb-12 border border-gray-200">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-col md:flex-row gap-5 md:items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <FaLightbulb className="text-mainColor text-2xl" />
                                 <div>
@@ -961,13 +961,13 @@ const ExamResult = () => {
                                             </div>
                                         </div>
                                         
-                                        <div className="text-right">
+                                        {/* <div className="text-right">
                                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                                                 isSelected ? 'bg-mainColor border-mainColor' : 'border-gray-300'
                                             }`}>
                                                 {isSelected && <FaCheck className="text-white text-xs" />}
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 );
                             })}
@@ -976,7 +976,7 @@ const ExamResult = () => {
                         {/* Buy Selected Chapters Button */}
                         {selectedChapters.length > 0 && (
                             <div className="mt-6 pt-6 border-t border-gray-200">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col md:flex-row gap-5 md:items-center justify-between">
                                     <div>
                                         <p className="text-lg font-semibold text-gray-800">
                                             {selectedChapters.length} chapter(s) selected

@@ -12,21 +12,23 @@ const ProtectedLogin = () => {
        const [isToastShown, setIsToastShown] = useState(false);
 
        useEffect(() => {
-              const isAuth = location.pathname === '/login' || location.pathname === '/signup';
-              const profile = location.pathname === '/profile';
-
+              const isAuth = location.pathname === '/' || location.pathname === '/signup';
+              const courses = location.pathname === 'courses';
+              const exam = location.pathname === 'exam/:courseId';
+              const examResult = location.pathname === 'exam/results/:examId';
+              const buyCourses = location.pathname === 'exam/:courseId';
 
               if (user && isAuth) {
-                     navigate('/', { replace: true });
+                     navigate('/courses', { replace: true });
                      return;
               }
 
-              if (!user && (profile)) {
+              if (!user && (courses || exam || examResult || buyCourses )) {
                      if (!isToastShown) {
                             auth.toastError('You must be logged in to continue');
                             setIsToastShown(true);
                      }
-                     navigate('/login', { replace: true });
+                     navigate('/', { replace: true });
               }
        }, [user, location.pathname, isToastShown, navigate, auth]);
 

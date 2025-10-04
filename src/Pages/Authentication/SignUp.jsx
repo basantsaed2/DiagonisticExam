@@ -38,9 +38,6 @@ const SignUp = () => {
     label: `Grade ${i + 1}`
   }));
 
-  // Log gradeOptions to verify
-  console.log('Grade Options:', gradeOptions);
-
   // API hooks
   const { refetch: refetchList, loading: loadingList, data: dataList } = useGet({
     url: `${apiUrl}/user/sign_up_lists`
@@ -57,7 +54,6 @@ const SignUp = () => {
   // Update lists when data is fetched
   useEffect(() => {
     if (dataList && !loadingList) {
-      console.log(dataList);
       setCountries(dataList.countries || []);
       setCities(dataList.cities || []);
       setCategories(dataList.categories || []);
@@ -84,7 +80,7 @@ const SignUp = () => {
       };
       // Send to auth context
       auth.login(userWithToken);
-      navigate('/', { replace: true });
+      navigate('/courses', { replace: true });
     }
   }, [response]);
 
@@ -164,10 +160,10 @@ const SignUp = () => {
       <img
         src={mainLogo}
         alt="Maths House Logo"
-        className="absolute top-2 left-2 h-10 md:h-12 object-contain"
+        className="absolute top-4 left-4 h-12 md:h-16 object-contain"
       />
 
-      <div className="relative w-full flex rounded-2xl overflow-hidden">
+      <div className="relative w-full mt-8 flex rounded-2xl overflow-hidden">
         {/* Left side - Form */}
         <div className="w-full md:w-3/5 p-4 md:p-6 flex flex-col justify-center">
           <div className="text-center mb-4 animate-fade-in">
@@ -385,7 +381,7 @@ const SignUp = () => {
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-mainColor hover:text-secondColor font-medium transition-colors duration-200">
+              <Link to="/" className="text-mainColor hover:text-secondColor font-medium transition-colors duration-200">
                 Login
               </Link>
             </p>

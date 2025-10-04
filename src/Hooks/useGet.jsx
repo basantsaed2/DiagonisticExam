@@ -37,7 +37,7 @@ export const useGet = ({ url, required, autoFetch = false }) => {
       ) {
         dispatch(removeUser());
         localStorage.clear();
-        navigate("/login", { replace: true });
+        navigate("/", { replace: true });
       }
     } finally {
       setLoading(false);

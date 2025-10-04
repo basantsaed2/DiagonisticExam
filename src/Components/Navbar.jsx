@@ -8,11 +8,14 @@ import { useAuth } from '../Context/Auth';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const user = useSelector(state => state.user?.data?.user );
-    const [pages] = useState(['/login', '/signup']);
+    const user = useSelector(state => state.user?.data );
+    const [pages] = useState(['/', '/signup']);
     const auth = useAuth();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+        console.log("user",user)
+
 
     // Sync login state with user data
     useEffect(() => {
@@ -71,7 +74,7 @@ const Navbar = () => {
                                 ) : (
                                     <div className="flex items-center space-x-4">
                                         <Link
-                                            to="/login"
+                                            to="/"
                                             className="text-sm hover:text-secondColor transition-colors duration-200"
                                         >
                                             {t('login')}

@@ -19,8 +19,8 @@ const Login = () => {
 
     useEffect(() => {
         if (response && response.data && response.status === 200 && !loadingPost) {
-            auth.login(response.data);
-            navigate('/', { replace: true });
+            auth.login(response.data?.user);
+            navigate('/courses', { replace: true });
         }}, [response]);
 
     // Validate email format
@@ -61,7 +61,7 @@ const Login = () => {
                 className="absolute top-4 left-4 h-12 md:h-16 object-contain"
             />
             
-            <div className="relative max-w-6xl w-full flex rounded-3xl overflow-hidden">
+            <div className="relative max-w-7xl w-full flex rounded-3xl overflow-hidden">
                 {/* Left side - Form */}
                 <div className="w-full md:w-3/5 p-6 md:p-12 flex flex-col justify-center">
                     <div className="text-center mb-8 animate-fade-in">

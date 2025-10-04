@@ -385,7 +385,7 @@ const BuyChapter = () => {
 
     useEffect(() => {
         if (response && response.data && !loadingPost) {
-            navigate('/');
+            navigate('/courses');
         }
     }, [response, loadingPost, navigate]);
 
