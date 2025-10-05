@@ -539,9 +539,7 @@ const ExamResult = () => {
     const { state } = useLocation();
     const examData = state?.examData || null;
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
-    const user = useSelector(state => state.user?.data?.user );
-
-    console.log('Exam Data:', examData);
+    const user = useSelector(state => state.user?.data );
 
     const [pdfData, setPdfData] = useState(null);
     const [reportData, setReportData] = useState(null);

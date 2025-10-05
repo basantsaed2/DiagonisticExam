@@ -335,8 +335,8 @@ const PdfDocument = ({ data, user, mainLogo }) => {
           <View style={styles.studentCard}>
             <Text style={styles.studentLabel}>Student Name</Text>
             <Text style={styles.studentValue}>{user || 'Student'}</Text>
-            <Text style={styles.studentLabel}>Grade Level</Text>
-            <Text style={styles.studentValue}>{data?.grade || 'N/A'}</Text>
+            {/* <Text style={styles.studentLabel}>Grade Level</Text>
+            <Text style={styles.studentValue}>{data?.grade || 'N/A'}</Text> */}
             <Text style={styles.studentLabel}>Exam Date</Text>
             <Text style={styles.studentValue}>{date}</Text>
           </View>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut } from 'lucide-react';
+import { FaUser } from 'react-icons/fa'; // Import FaUser icon from react-icons
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,14 +9,11 @@ import { useAuth } from '../Context/Auth';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const user = useSelector(state => state.user?.data );
+    const user = useSelector(state => state.user?.data);
     const [pages] = useState(['/', '/signup']);
     const auth = useAuth();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-        console.log("user",user)
-
 
     // Sync login state with user data
     useEffect(() => {
@@ -51,15 +49,17 @@ const Navbar = () => {
                             <div className="flex items-center space-x-4">
                                 {isLoggedIn && user ? (
                                     <>
-                                    <div className='h-auto w-20 rounded-full'>
-                                         <img
-                                            src={user.image_link || 'https://via.placeholder.com/40'}
-                                            alt={user.nick_name || user.f_name || 'User'}
-                                            className="rounded-full object-contain"
-                                        />
-                                        
-                                    </div>
-                                    
+                                        <div className="h-10 w-20 rounded-full flex items-center justify-center bg-gray-200">
+                                            {( user.image_link && user.image !== "default.png" ) ? (
+                                                <img
+                                                    src={user.image_link}
+                                                    alt={user.nick_name || user.f_name || 'User'}
+                                                    className="h-full w-full rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <FaUser className="h-6 w-6 text-gray-600" />
+                                            )}
+                                        </div>
                                         <span className="text-sm font-medium">
                                             {user.nick_name || user.f_name || 'User'}
                                         </span>
@@ -88,7 +88,6 @@ const Navbar = () => {
                                     </div>
                                 )}
                             </div>
-
                         </div>
                     </div>
                 </nav>

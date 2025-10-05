@@ -45,7 +45,6 @@ const Exam = () => {
         }
     }, [response, loadingPost, navigate]);
 
-
     // Timer logic to count up
     useEffect(() => {
         const timer = setInterval(() => {
@@ -75,34 +74,39 @@ const Exam = () => {
         }
     }, [currentQuestionIndex]);
 
-    // Reset fraction inputs when question changes
+    // Reset fraction inputs when question changes AND populate from stored values
     useEffect(() => {
-        setNumerator('');
-        setDenominator('');
-    }, [currentQuestionIndex]);
+        const currentQuestionId = diaExam[currentQuestionIndex]?.id;
+        
+        if (currentQuestionId) {
+            const storedFraction = gridInValues[currentQuestionId];
+            
+            if (storedFraction && typeof storedFraction === 'string') {
+                if (storedFraction.includes('/')) {
+                    // It's a fraction like "1/2"
+                    const [num, denom] = storedFraction.split('/');
+                    setNumerator(num || '');
+                    setDenominator(denom || '');
+                } else {
+                    // It's a whole number
+                    setNumerator(storedFraction);
+                    setDenominator('');
+                }
+            } else {
+                // No stored value, reset inputs
+                setNumerator('');
+                setDenominator('');
+            }
+        } else {
+            // Fallback reset
+            setNumerator('');
+            setDenominator('');
+        }
+    }, [currentQuestionIndex, diaExam, gridInValues]);
 
     // Handle answer selection for MCQ - store the mcq_num value (A, B, C, D)
     const handleMCQAnswer = (questionId, mcqNum) => {
         setAnswers((prev) => ({ ...prev, [questionId]: mcqNum }));
-    };
-
-    // Handle Grid-in fraction input
-    const handleGridInFraction = (questionId, num, denom) => {
-        setNumerator(num);
-        setDenominator(denom);
-
-        if (num && denom && denom !== '0') {
-            const fractionValue = `${num}/${denom}`;
-            setAnswers((prev) => ({ ...prev, [questionId]: fractionValue }));
-            setGridInValues(prev => ({ ...prev, [questionId]: fractionValue }));
-        } else if (num && (!denom || denom === '')) {
-            // If only numerator is provided, treat as whole number
-            setAnswers((prev) => ({ ...prev, [questionId]: num }));
-            setGridInValues(prev => ({ ...prev, [questionId]: num }));
-        } else {
-            setAnswers((prev) => ({ ...prev, [questionId]: '' }));
-            setGridInValues(prev => ({ ...prev, [questionId]: '' }));
-        }
     };
 
     // Calculate fraction result safely
@@ -132,6 +136,28 @@ const Exam = () => {
         }
     };
 
+    // Handle Grid-in fraction input
+    const handleGridInFraction = (questionId, num, denom) => {
+        setNumerator(num);
+        setDenominator(denom);
+
+        let finalValue = '';
+        let fractionDisplayValue = '';
+
+        if (num && denom && denom !== '0') {
+            fractionDisplayValue = `${num}/${denom}`;
+            const calculatedValue = calculateFractionResult(fractionDisplayValue);
+            finalValue = calculatedValue || '';
+        } else if (num && (!denom || denom === '')) {
+            // If only numerator is provided, treat as whole number
+            fractionDisplayValue = num;
+            finalValue = num;
+        }
+
+        setGridInValues(prev => ({ ...prev, [questionId]: fractionDisplayValue }));
+        setAnswers((prev) => ({ ...prev, [questionId]: finalValue }));
+    };
+
     // Clear fraction inputs
     const clearFraction = (questionId) => {
         setNumerator('');
@@ -155,11 +181,18 @@ const Exam = () => {
 
         // Add answers in correct order based on question sequence
         diaExam.forEach((question, index) => {
-            if (question && question.id) { // Add null check
-                const answer = answers[question.id] || '';
+            if (question && question.id) {
+                let answer = answers[question.id] || '';
+                
+                // If it's a fraction string, calculate the decimal value
+                if (answer && typeof answer === 'string' && answer.includes('/')) {
+                    const calculated = calculateFractionResult(answer);
+                    answer = calculated || '';
+                }
+                
                 formData.append(`answers[${index}]`, answer);
                 if (index === 0) {
-                    exam_id = question.pivot?.diagnostic_exam_id || courseId; // Fallback to courseId
+                    exam_id = question.pivot?.diagnostic_exam_id || courseId;
                 }
             }
         });
@@ -229,7 +262,8 @@ const Exam = () => {
 
     const totalQuestions = diaExam.length;
     const currentAnswer = answers[currentQuestion.id];
-    const calculatedResult = calculateFractionResult(currentAnswer);
+    const currentGridInValue = gridInValues[currentQuestion.id];
+    const calculatedResult = calculateFractionResult(currentGridInValue);
 
     return (
         <div className="min-h-screen bg-white py-6 px-4 md:px-6 lg:px-8">
@@ -271,7 +305,6 @@ const Exam = () => {
                             className="flex overflow-x-auto gap-2 py-3 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
                         >
                             {diaExam.map((question, index) => {
-                                // Create unique key using both id and index to avoid duplicates
                                 const uniqueKey = question?.id ? `${question.id}-${index}` : `question-${index}`;
 
                                 return (
@@ -332,7 +365,6 @@ const Exam = () => {
                             {currentQuestion.ans_type === 'MCQ' ? (
                                 <div className="space-y-3">
                                     {currentQuestion.mcq && currentQuestion.mcq.map((option) => {
-                                        // Create unique key for MCQ options
                                         const optionKey = option?.id ? `option-${option.id}` : `option-${Math.random()}`;
 
                                         return (
