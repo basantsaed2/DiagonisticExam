@@ -108,7 +108,7 @@ const Login = () => {
                             <button
                                 type="button"
                                 className="text-sm text-mainColor hover:text-secondColor font-medium transition-colors duration-200"
-                                onClick={() => setLoginStep('forgot')}
+                                onClick={() => navigate('/forget_password')}
                             >
                                 Forgot Password?
                             </button>

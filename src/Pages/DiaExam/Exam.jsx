@@ -41,7 +41,7 @@ const Exam = () => {
     // Redirect to results page with response data
     useEffect(() => {
         if (response && response.data && !loadingPost) {
-            navigate(`/exam/results/${response.data.exam?.id}`, { state: { examData: response.data } });
+            navigate(`/exam/results/${response.data.exam?.id}`, { state: { examData: response.data , timer: formatTime(timeElapsed) } });
         }
     }, [response, loadingPost, navigate]);
 

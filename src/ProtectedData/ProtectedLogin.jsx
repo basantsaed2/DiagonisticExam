@@ -12,7 +12,7 @@ const ProtectedLogin = () => {
        const [isToastShown, setIsToastShown] = useState(false);
 
        useEffect(() => {
-              const isAuth = location.pathname === '/' || location.pathname === '/signup';
+              const isAuth = location.pathname === '/' || location.pathname === '/signup' || location.pathname === '/forget_password';
               const courses = location.pathname === 'courses';
               const exam = location.pathname === 'exam/:courseId';
               const examResult = location.pathname === 'exam/results/:examId';

@@ -10,7 +10,7 @@ import { useAuth } from '../Context/Auth';
 const Navbar = () => {
     const navigate = useNavigate();
     const user = useSelector(state => state.user?.data);
-    const [pages] = useState(['/', '/signup']);
+    const [pages] = useState(['/', '/signup','/forget_password']);
     const auth = useAuth();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

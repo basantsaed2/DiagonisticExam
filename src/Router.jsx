@@ -8,6 +8,7 @@ import Exam from "./Pages/DiaExam/Exam";
 import ExamResult from "./Pages/DiaExam/ExamResult";
 import SignUp from "./Pages/Authentication/SignUp";
 import BuyChapter from "./Pages/DiaExam/BuyChapter";
+import ForgetPassword from "./Pages/Authentication/ForgetPassword";
 
 
 export const router = createBrowserRouter([
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/", element: <Login /> },
           { path: "signup", element: <SignUp /> },
+          { path: "forget_password", element: <ForgetPassword /> },
         ],
       },
 
