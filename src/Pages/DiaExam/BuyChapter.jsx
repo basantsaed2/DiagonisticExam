@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaCheckCircle, FaSpinner, FaUpload } from "react-icons/fa";
+import { FaArrowLeft, FaCheckCircle, FaSpinner, FaUpload, FaExternalLinkAlt } from "react-icons/fa";
 import mainLogo from "../../assets/Images/mainLogo.png";
 import { useGet } from "../../Hooks/useGet";
 import { usePost } from "../../Hooks/usePost";
@@ -136,7 +136,10 @@ const BuyChapter = () => {
         }));
     };
 
-    const handleReceiptUpload = (event) => {
+    const handleReceiptUpload = (event, methodId) => {
+        // Only process if this is for the currently selected payment method
+        if (methodId.toString() !== selectedPaymentMethod) return;
+        
         const file = event.target.files[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
@@ -272,6 +275,9 @@ const BuyChapter = () => {
 
     const selectedCurrencyObj = currencies.find(c => c.id.toString() === selectedCurrency);
 
+    // Check if selected payment method includes "Instapay"
+    const isInstapayMethod = selectedPaymentDetails?.payment?.toLowerCase().includes("instapay");
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 py-8 px-4 sm:px-6 lg:px-8">
             <div className="w-full">
@@ -303,17 +309,25 @@ const BuyChapter = () => {
                                                 <p className="text-gray-500 mt-1">Minimum price: ${chapter.min_price}</p>
                                             </div>
                                             <div className="flex flex-col items-end gap-2">
-                                                <select
-                                                    value={chapterDurations[chapter.id] || ""}
-                                                    onChange={(e) => handleDurationChange(chapter.id, e.target.value)}
-                                                    className="border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-mainColor focus:border-mainColor min-w-[180px]"
-                                                >
-                                                    {chapter.price.map((p) => (
-                                                        <option key={p.id} value={p.duration}>
-                                                            {p.duration} days - ${p.price}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                <div className="relative w-full max-w-[200px]">
+                                                    <select
+                                                        value={chapterDurations[chapter.id] || ""}
+                                                        onChange={(e) => handleDurationChange(chapter.id, e.target.value)}
+                                                        className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-mainColor focus:border-mainColor appearance-none"
+                                                        style={{ maxWidth: "100%" }}
+                                                    >
+                                                        {chapter.price.map((p) => (
+                                                            <option key={p.id} value={p.duration}>
+                                                                {p.duration} days - ${p.price}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
                                                 <div className="text-right">
                                                     <span className="text-lg font-bold text-mainColor">
                                                         $
@@ -332,118 +346,151 @@ const BuyChapter = () => {
                         <div className="flex-1">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">Select Payment Method</h2>
                             <div className="grid gap-4">
-                                {paymentMethods.map((method) => (
-                                    <div key={method.id}>
-                                        <label
-                                            className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedPaymentMethod === method.id.toString()
-                                                ? "border-mainColor bg-mainColor/10"
-                                                : "border-gray-200 bg-gray-50 hover:border-mainColor/50"
-                                                }`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="paymentMethod"
-                                                value={method.id}
-                                                checked={selectedPaymentMethod === method.id.toString()}
-                                                onChange={() => setSelectedPaymentMethod(method.id.toString())}
-                                                className="h-5 w-5 text-mainColor border-gray-300 focus:ring-mainColor"
-                                            />
-                                            <div className="ml-3 flex items-center gap-3">
-                                                <img
-                                                    src={method.logo_link}
-                                                    alt={method.payment}
-                                                    className="h-8 w-8 object-contain"
-                                                    onError={(e) => {
-                                                        e.target.src = mainLogo;
-                                                        e.target.className = "h-8 w-8 object-contain opacity-50";
+                                {paymentMethods.map((method) => {
+                                    const isSelected = selectedPaymentMethod === method.id.toString();
+                                    const isInstapay = method.payment?.toLowerCase().includes("instapay");
+                                    const methodRequiresReceipt = method.payment !== "Paymob" && method.id !== 10;
+
+                                    return (
+                                        <div key={method.id}>
+                                            <label
+                                                className={`flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${isSelected
+                                                    ? "border-mainColor bg-mainColor/10"
+                                                    : "border-gray-200 bg-gray-50 hover:border-mainColor/50"
+                                                    }`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="paymentMethod"
+                                                    value={method.id}
+                                                    checked={isSelected}
+                                                    onChange={() => {
+                                                        setSelectedPaymentMethod(method.id.toString());
+                                                        // Clear receipt when changing payment method
+                                                        setReceiptFile(null);
+                                                        setReceiptPreview(null);
                                                     }}
+                                                    className="h-5 w-5 text-mainColor border-gray-300 focus:ring-mainColor"
                                                 />
-                                                <span className="text-gray-800 font-medium text-lg">{method.payment}</span>
-                                            </div>
-                                        </label>
+                                                <div className="ml-3 flex items-center gap-3">
+                                                    <img
+                                                        src={method.logo_link}
+                                                        alt={method.payment}
+                                                        className="h-8 w-8 object-contain"
+                                                        onError={(e) => {
+                                                            e.target.src = mainLogo;
+                                                            e.target.className = "h-8 w-8 object-contain opacity-50";
+                                                        }}
+                                                    />
+                                                    <span className="text-gray-800 font-medium text-lg">{method.payment}</span>
+                                                </div>
+                                            </label>
 
-                                        {selectedPaymentMethod === method.id.toString() && (
-                                            <div className="mt-3 p-4 bg-red-50 rounded-xl border border-red-200">
-                                                <h3 className="text-lg text-black mb-2">Payment Instructions</h3>
-                                                <p className="text-gray-900 font-semibold">{method.description}</p>
+                                            {isSelected && (
+                                                <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                                                    <h3 className="text-lg text-black mb-2">Payment Instructions</h3>
+                                                    
+                                                    {/* Instapay Button */}
+                                                    {isInstapay && (
+                                                        <div className="mb-3">
+                                                            <button
+                                                                onClick={() => window.open('https://instapay.com', '_blank')}
+                                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                                            >
+                                                                Go to Instapay
+                                                                <FaExternalLinkAlt className="text-sm" />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <p className="text-gray-900 font-semibold">{!isInstapay ? method.description : ''}</p>
 
-                                                {/* Receipt Upload Section */}
-                                                {requiresReceiptUpload && (
-                                                    <div className="mt-4">
-                                                        {!receiptPreview ? (
-                                                            <div className="border-2 border-dashed border-red-300 rounded-lg p-6 text-center hover:border-red-400 transition-colors">
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/*"
-                                                                    onChange={handleReceiptUpload}
-                                                                    className="hidden"
-                                                                    id="receipt-upload"
-                                                                />
-                                                                <label
-                                                                    htmlFor="receipt-upload"
-                                                                    className="cursor-pointer block"
-                                                                >
-                                                                    <FaUpload className="text-red-400 text-2xl mx-auto mb-2" />
-                                                                    <p className="text-red-600 text-sm">
-                                                                        Click to upload receipt
-                                                                    </p>
-                                                                </label>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
-                                                                <div className="flex items-center justify-between mb-3">
-                                                                    <span className="text-sm font-medium text-green-700">
-                                                                        Receipt Preview
-                                                                    </span>
-                                                                    <button
-                                                                        onClick={removeReceipt}
-                                                                        className="text-red-500 hover:text-red-700 text-sm"
+                                                    {/* Receipt Upload Section - Only show for the selected method that requires it */}
+                                                    {isSelected && methodRequiresReceipt && (
+                                                        <div className="mt-4">
+                                                            {!receiptPreview ? (
+                                                                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => handleReceiptUpload(e, method.id)}
+                                                                        className="hidden"
+                                                                        id={`receipt-upload-${method.id}`}
+                                                                    />
+                                                                    <label
+                                                                        htmlFor={`receipt-upload-${method.id}`}
+                                                                        className="cursor-pointer block"
                                                                     >
-                                                                        Remove
-                                                                    </button>
+                                                                        <FaUpload className="text-blue-400 text-2xl mx-auto mb-2" />
+                                                                        <p className="text-blue-600 text-sm">
+                                                                            Click to upload receipt for {method.payment}
+                                                                        </p>
+                                                                    </label>
                                                                 </div>
-                                                                <img
-                                                                    src={receiptPreview}
-                                                                    alt="Receipt preview"
-                                                                    className="w-full max-w-xs h-32 object-contain rounded border mx-auto"
-                                                                />
-                                                                <p className="text-green-600 text-xs mt-2 text-center">
-                                                                    ✓ Receipt uploaded successfully
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                            ) : (
+                                                                <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
+                                                                    <div className="flex items-center justify-between mb-3">
+                                                                        <span className="text-sm font-medium text-green-700">
+                                                                            Receipt Preview for {method.payment}
+                                                                        </span>
+                                                                        <button
+                                                                            onClick={removeReceipt}
+                                                                            className="text-red-500 hover:text-red-700 text-sm"
+                                                                        >
+                                                                            Remove
+                                                                        </button>
+                                                                    </div>
+                                                                    <img
+                                                                        src={receiptPreview}
+                                                                        alt="Receipt preview"
+                                                                        className="w-full max-w-xs h-32 object-contain rounded border mx-auto"
+                                                                    />
+                                                                    <p className="text-green-600 text-xs mt-2 text-center">
+                                                                        ✓ Receipt uploaded successfully for {method.payment}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
 
-                                                {/* Paymob Note */}
-                                                {/* {!requiresReceiptUpload && (
-                                                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                                        <p className="text-green-700 text-sm text-center">
-                                                            ✓ No receipt needed for Paymob payment
-                                                        </p>
-                                                    </div>
-                                                )} */}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                                    {/* Paymob Note */}
+                                                    {!methodRequiresReceipt && (
+                                                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                            <p className="text-green-700 text-sm text-center">
+                                                                ✓ No receipt needed for {method.payment} payment
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             {/* Currency Selection Section */}
                             <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                 <div className="flex items-center justify-between mb-3">
                                     <h3 className="text-lg font-semibold text-gray-800">Total in Other Currencies</h3>
-                                    <select
-                                        value={selectedCurrency}
-                                        onChange={(e) => setSelectedCurrency(e.target.value)}
-                                        className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    >
-                                        {currencies.map((currency) => (
-                                            <option key={currency.id} value={currency.id}>
-                                                {currency.currency}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedCurrency}
+                                            onChange={(e) => setSelectedCurrency(e.target.value)}
+                                            className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none pr-8"
+                                            style={{ maxWidth: "150px" }}
+                                        >
+                                            {currencies.map((currency) => (
+                                                <option key={currency.id} value={currency.id}>
+                                                    {currency.currency}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="bg-white rounded-lg p-3 border border-blue-300">
@@ -464,9 +511,6 @@ const BuyChapter = () => {
                     <div className="mb-8 p-6 bg-mainColor/5 rounded-xl border border-mainColor/20">
                         <h2 className="text-2xl font-bold text-gray-800 mb-2">Total Amount (USD)</h2>
                         <p className="text-3xl font-bold text-mainColor">${calculateTotalAmount()}</p>
-                        {/* <p className="text-lg text-gray-600 mt-2">
-                            Equivalent to: <span className="font-semibold">{calculateTotalInEGP()} EGP</span>
-                        </p> */}
                     </div>
 
                     {/* Action Buttons */}

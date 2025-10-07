@@ -10,7 +10,7 @@ import { useAuth } from '../Context/Auth';
 const Navbar = () => {
     const navigate = useNavigate();
     const user = useSelector(state => state.user?.data);
-    const [pages] = useState(['/', '/signup','/forget_password']);
+    const [pages] = useState(['/', '/signup', '/forget_password']);
     const auth = useAuth();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -48,29 +48,28 @@ const Navbar = () => {
                             {/* User Profile and Actions - Desktop */}
                             <div className="flex items-center space-x-4">
                                 {isLoggedIn && user ? (
-                                    <>
-                                        <div className="h-10 w-20 rounded-full flex items-center justify-center bg-gray-200">
-                                            {( user.image_link && user.image !== "default.png" ) ? (
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                                            {user.image_link && user.image !== "default.png" ? (
                                                 <img
                                                     src={user.image_link}
                                                     alt={user.nick_name || user.f_name || 'User'}
-                                                    className="h-full w-full rounded-full object-cover"
+                                                    className="h-full w-full object-cover"
                                                 />
                                             ) : (
                                                 <FaUser className="h-6 w-6 text-gray-600" />
                                             )}
                                         </div>
-                                        <span className="text-sm font-medium">
-                                            {user.nick_name || user.f_name || 'User'}
-                                        </span>
+                                        <span className="text-sm font-medium">{user.nick_name || user.f_name || 'User'}</span>
                                         <button
                                             onClick={handleLogout}
-                                            className="flex items-center space-x-2 px-3 py-2 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors duration-200 w-full justify-start"
+                                            className="flex items-center gap-2 px-3 py-2 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors duration-200"
                                         >
                                             <LogOut size={16} />
                                             <span>Logout</span>
                                         </button>
-                                    </>
+                                    </div>
+
                                 ) : (
                                     <div className="flex items-center space-x-4">
                                         <Link
