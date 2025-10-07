@@ -260,7 +260,7 @@ const reportStyles = StyleSheet.create({
 });
 
 const ReportDocument = ({ data, user, mainLogo }) => {
-  const { category, course, dai_exam, grade, mistakes = [], report } = data;
+  const { course, dai_exam, grade, mistakes = [], report } = data;
   const { date, time, delay } = report || {};
 
   // Calculate statistics
@@ -275,8 +275,47 @@ const ReportDocument = ({ data, user, mainLogo }) => {
   }, {});
   const uniqueQuestions = [...new Set(mistakes.map(m => m.question_number))].length;
 
+  // Improved grouping function that only creates groups when needed
+  const groupChaptersByPage = (chapters) => {
+    if (Object.keys(chapters).length === 0) return []; // No chapters = no groups
+    
+    const chaptersArray = Object.entries(chapters);
+    
+    // If we have very few chapters, they'll likely fit on the first page
+    if (chaptersArray.length <= 3) {
+      return [chaptersArray]; // Single group that goes on first page
+    }
+    
+    // Only create multiple groups for many chapters
+    const groups = [];
+    let currentGroup = [];
+    
+    chaptersArray.forEach(([chapter, chapterMistakes]) => {
+      currentGroup.push([chapter, chapterMistakes]);
+      
+      // Start new group after every 4-5 chapters (adjust based on your content size)
+      if (currentGroup.length >= 4) {
+        groups.push(currentGroup);
+        currentGroup = [];
+      }
+    });
+    
+    // Add remaining chapters to last group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
+  const chapterGroups = groupChaptersByPage(mistakesByChapter);
+
+  // Check if we have any chapters to display
+  const hasChapters = Object.keys(mistakesByChapter).length > 0;
+
   return (
     <Document>
+      {/* First Page with Summary AND Chapters (if they fit) */}
       <Page size="A4" style={reportStyles.page}>
         {/* Header with Logo and Student Info */}
         <View style={reportStyles.header}>
@@ -333,28 +372,72 @@ const ReportDocument = ({ data, user, mainLogo }) => {
           </View>
         </View>
 
-        {/* Chapter-wise Analysis */}
-        <View style={reportStyles.section}>
-          <View style={reportStyles.sectionHeader}>
-            <Text style={reportStyles.sectionTitle}>Chapter-wise Analysis</Text>
-          </View>
-          <View style={reportStyles.chapterAnalysis}>
-            {Object.entries(mistakesByChapter).map(([chapter, chapterMistakes]) => (
-              <View key={chapter} style={reportStyles.chapterCard}>
-                <View style={reportStyles.chapterHeader}>
-                  <Text style={reportStyles.chapterName}>{chapter}</Text>
-                  <Text style={reportStyles.mistakeCount}>
-                    {chapterMistakes.length} mistake{chapterMistakes.length > 1 ? 's' : ''}
+        {/* Render first group of chapters on the same page if we have few chapters */}
+        {hasChapters && chapterGroups.length <= 1 && (
+          <View style={reportStyles.section}>
+            <View style={reportStyles.sectionHeader}>
+              <Text style={reportStyles.sectionTitle}>Chapter-wise Analysis</Text>
+            </View>
+            <View style={reportStyles.chapterAnalysis}>
+              {chapterGroups[0].map(([chapter, chapterMistakes]) => (
+                <View key={chapter} style={reportStyles.chapterCard}>
+                  <View style={reportStyles.chapterHeader}>
+                    <Text style={reportStyles.chapterName}>{chapter}</Text>
+                    <Text style={reportStyles.mistakeCount}>
+                      {chapterMistakes.length} mistake{chapterMistakes.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                  <Text style={reportStyles.questionsList}>
+                    Questions: {[...new Set(chapterMistakes.map(m => m.question_number))].join(', ')}
                   </Text>
                 </View>
-                <Text style={reportStyles.questionsList}>
-                  Questions: {[...new Set(chapterMistakes.map(m => m.question_number))].join(', ')}
+              ))}
+            </View>
+          </View>
+        )}
+      </Page>
+
+      {/* Additional Pages for Chapter Analysis ONLY when we have multiple groups */}
+      {chapterGroups.length > 1 && chapterGroups.map((chapterGroup, pageIndex) => (
+        <Page key={pageIndex} size="A4" style={reportStyles.page}>
+          {/* Page Header for continuation pages */}
+          <View style={reportStyles.header}>
+            <View style={reportStyles.logoContainer}>
+              <Image src={mainLogo} style={reportStyles.logo} />
+              <View style={reportStyles.headerText}>
+                <Text style={reportStyles.title}>Chapter Analysis</Text>
+                <Text style={reportStyles.subtitle}>
+                  {dai_exam} - Page {pageIndex + 2}
                 </Text>
               </View>
-            ))}
+            </View>
           </View>
-        </View>
-      </Page>
+
+          {/* Chapter-wise Analysis for this page */}
+          <View style={reportStyles.section}>
+            <View style={reportStyles.sectionHeader}>
+              <Text style={reportStyles.sectionTitle}>
+                {pageIndex === 0 ? 'Chapter-wise Analysis' : 'Chapter-wise Analysis (Continued)'}
+              </Text>
+            </View>
+            <View style={reportStyles.chapterAnalysis}>
+              {chapterGroup.map(([chapter, chapterMistakes]) => (
+                <View key={chapter} style={reportStyles.chapterCard}>
+                  <View style={reportStyles.chapterHeader}>
+                    <Text style={reportStyles.chapterName}>{chapter}</Text>
+                    <Text style={reportStyles.mistakeCount}>
+                      {chapterMistakes.length} mistake{chapterMistakes.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                  <Text style={reportStyles.questionsList}>
+                    Questions: {[...new Set(chapterMistakes.map(m => m.question_number))].join(', ')}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </Page>
+      ))}
     </Document>
   );
 };
