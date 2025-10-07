@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaCheckCircle, FaSpinner, FaUpload, FaExternalLinkAlt } from "react-icons/fa";
+import { FaArrowLeft, FaCheckCircle, FaSpinner, FaUpload, FaExternalLinkAlt, FaWallet } from "react-icons/fa";
 import mainLogo from "../../assets/Images/mainLogo.png";
 import { useGet } from "../../Hooks/useGet";
 import { usePost } from "../../Hooks/usePost";
@@ -36,6 +36,14 @@ const BuyChapter = () => {
     const [receiptFile, setReceiptFile] = useState(null);
     const [receiptPreview, setReceiptPreview] = useState(null);
 
+    // Static Wallet payment method
+    const walletPaymentMethod = {
+        id: "Wallet",
+        payment: "Wallet",
+        logo_link: null, // We'll use icon instead
+        description: "Pay using your wallet balance"
+    };
+
     useEffect(() => {
         refetchPaymentMethod();
         refetchCurrencies();
@@ -43,9 +51,11 @@ const BuyChapter = () => {
 
     useEffect(() => {
         if (dataPaymentMethod && !loadingPaymentMethod) {
-            setPaymentMethods(dataPaymentMethod.payment_methods || []);
-            if (dataPaymentMethod.payment_methods?.length > 0) {
-                setSelectedPaymentMethod(dataPaymentMethod.payment_methods[0].id.toString());
+            // Combine static wallet method with API payment methods
+            const combinedMethods = [walletPaymentMethod, ...(dataPaymentMethod.payment_methods || [])];
+            setPaymentMethods(combinedMethods);
+            if (combinedMethods.length > 0) {
+                setSelectedPaymentMethod(combinedMethods[0].id.toString());
             }
         }
     }, [dataPaymentMethod, loadingPaymentMethod]);
@@ -180,10 +190,14 @@ const BuyChapter = () => {
             (method) => method.id.toString() === selectedPaymentMethod
         );
 
+        // For Wallet payment, no receipt is needed
+        const isWalletPayment = selectedMethod?.id === "Wallet";
+        
         if (
             selectedMethod &&
             selectedMethod.payment !== "Paymob" &&
             selectedMethod.id !== 10 &&
+            !isWalletPayment &&
             !receiptFile
         ) {
             auth.toastError("Please upload a payment receipt.");
@@ -201,7 +215,7 @@ const BuyChapter = () => {
             })),
         };
 
-        if (receiptFile && selectedMethod.payment !== "Paymob" && selectedMethod.id !== 10) {
+        if (receiptFile && selectedMethod.payment !== "Paymob" && selectedMethod.id !== 10 && !isWalletPayment) {
             payload.image = receiptPreview;
         }
 
@@ -269,9 +283,11 @@ const BuyChapter = () => {
         method.id.toString() === selectedPaymentMethod
     );
 
+    const isWalletPayment = selectedPaymentDetails?.id === "Wallet";
     const requiresReceiptUpload = selectedPaymentDetails &&
         selectedPaymentDetails.payment !== "Paymob" &&
-        selectedPaymentDetails.id !== 10;
+        selectedPaymentDetails.id !== 10 &&
+        !isWalletPayment;
 
     const selectedCurrencyObj = currencies.find(c => c.id.toString() === selectedCurrency);
 
@@ -349,7 +365,8 @@ const BuyChapter = () => {
                                 {paymentMethods.map((method) => {
                                     const isSelected = selectedPaymentMethod === method.id.toString();
                                     const isInstapay = method.payment?.toLowerCase().includes("instapay");
-                                    const methodRequiresReceipt = method.payment !== "Paymob" && method.id !== 10;
+                                    const isWallet = method.id === "Wallet";
+                                    const methodRequiresReceipt = method.payment !== "Paymob" && method.id !== 10 && !isWallet;
 
                                     return (
                                         <div key={method.id}>
@@ -373,20 +390,24 @@ const BuyChapter = () => {
                                                     className="h-5 w-5 text-mainColor border-gray-300 focus:ring-mainColor"
                                                 />
                                                 <div className="ml-3 flex items-center gap-3">
-                                                    <img
-                                                        src={method.logo_link}
-                                                        alt={method.payment}
-                                                        className="h-8 w-8 object-contain"
-                                                        onError={(e) => {
-                                                            e.target.src = mainLogo;
-                                                            e.target.className = "h-8 w-8 object-contain opacity-50";
-                                                        }}
-                                                    />
+                                                    {isWallet ? (
+                                                        <FaWallet className="h-6 w-6 text-purple-600" />
+                                                    ) : (
+                                                        <img
+                                                            src={method.logo_link}
+                                                            alt={method.payment}
+                                                            className="h-8 w-8 object-contain"
+                                                            onError={(e) => {
+                                                                e.target.src = mainLogo;
+                                                                e.target.className = "h-8 w-8 object-contain opacity-50";
+                                                            }}
+                                                        />
+                                                    )}
                                                     <span className="text-gray-800 font-medium text-lg">{method.payment}</span>
                                                 </div>
                                             </label>
 
-                                            {isSelected && (
+                                            {isSelected && !isWallet && (
                                                 <div className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
                                                     <h3 className="text-lg text-black mb-2">Payment Instructions</h3>
                                                     
@@ -454,7 +475,7 @@ const BuyChapter = () => {
                                                     )}
 
                                                     {/* Paymob Note */}
-                                                    {!methodRequiresReceipt && (
+                                                    {!methodRequiresReceipt && !isWallet && (
                                                         <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                                                             <p className="text-green-700 text-sm text-center">
                                                                 ✓ No receipt needed for {method.payment} payment
@@ -463,6 +484,7 @@ const BuyChapter = () => {
                                                     )}
                                                 </div>
                                             )}
+
                                         </div>
                                     );
                                 })}

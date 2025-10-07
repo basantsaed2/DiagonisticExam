@@ -85,10 +85,54 @@ const preloadImages = async (mistakes) => {
     return processedMistakes;
 };
 
+// Helper function to calculate delay
+const calculateDelay = (examTime, actualTime) => {
+    if (!examTime || !actualTime) return { delay: 0, exceeded: false };
+    
+    // Convert exam time (HH:MM:SS) to seconds
+    const examTimeParts = examTime.split(':').map(part => parseInt(part, 10));
+    const examTimeInSeconds = examTimeParts[0] * 3600 + examTimeParts[1] * 60 + examTimeParts[2];
+    
+    // Convert actual time (MM:SS) to seconds
+    const actualTimeParts = actualTime.split(':').map(part => parseInt(part, 10));
+    const actualTimeInSeconds = actualTimeParts.length === 3 
+        ? actualTimeParts[0] * 3600 + actualTimeParts[1] * 60 + actualTimeParts[2]
+        : actualTimeParts[0] * 60 + actualTimeParts[1];
+    
+    const delayInSeconds = Math.max(0, actualTimeInSeconds - examTimeInSeconds);
+    
+    if (delayInSeconds === 0) {
+        return { delay: 0, exceeded: false };
+    }
+    
+    // Format delay as HH:MM:SS or MM:SS
+    const hours = Math.floor(delayInSeconds / 3600);
+    const minutes = Math.floor((delayInSeconds % 3600) / 60);
+    const seconds = delayInSeconds % 60;
+    
+    let delayString = '';
+    if (hours > 0) {
+        delayString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } else {
+        delayString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    return {
+        delay: delayString,
+        exceeded: delayInSeconds > 0,
+        delayInSeconds
+    };
+};
+
 const ExamResult = () => {
     const { state } = useLocation();
     const examData = state?.examData || null;
     const timer = state?.timer || 0; // 👈 receives the passed timer
+
+    
+    // Use the calculateDelay function here
+    const delayInfo = calculateDelay(examData?.exam?.time, timer);
+
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
     const user = useSelector(state => state.user?.data );
 
@@ -198,7 +242,7 @@ const ExamResult = () => {
 
         try {
             const DocumentComponent = type === 'pdf' ? PdfDocument : ReportDocument;
-            const blob = await pdf(<DocumentComponent data={data} mainLogo={mainLogo} user={user.nick_name || user.f_name || 'User'} />).toBlob();
+            const blob = await pdf(<DocumentComponent data={data} mainLogo={mainLogo} user={user.nick_name || user.f_name || 'User'} delayInfo={delayInfo} />).toBlob();
             
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');

@@ -259,9 +259,12 @@ const reportStyles = StyleSheet.create({
   },
 });
 
-const ReportDocument = ({ data, user, mainLogo }) => {
+const ReportDocument = ({ data, user, mainLogo,delayInfo }) => {
   const { course, dai_exam, grade, mistakes = [], report } = data;
   const { date, time, delay } = report || {};
+
+    // Use delayInfo from props instead of report.delay
+  const delayDisplay = delayInfo?.exceeded ? `+${delayInfo.delay}` : '0';
 
   // Calculate statistics
   const totalMistakes = mistakes.length;
@@ -363,7 +366,7 @@ const ReportDocument = ({ data, user, mainLogo }) => {
             </View>
             <View style={reportStyles.infoCard}>
               <Text style={reportStyles.infoLabel}>Delay</Text>
-              <Text style={reportStyles.infoValue}>{delay}</Text>
+              <Text style={reportStyles.infoValue}>{delayDisplay}</Text>
             </View>
             <View style={reportStyles.infoCard}>
               <Text style={reportStyles.infoLabel}>Course</Text>
