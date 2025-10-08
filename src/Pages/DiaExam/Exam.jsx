@@ -482,13 +482,37 @@ const Exam = () => {
     const calculatedResult = calculateExpressionResult(currentGridInValue);
 
     return (
-        <div className="h-full bg-white px-2 md:px-4 lg:px-6 flex flex-col">
+        <div className="min-h-screen bg-white px-2 md:px-4 lg:px-6 flex flex-col">
             <div className="w-full h-full flex flex-col">
+
                 {/* Header Section */}
                 <div className="bg-white rounded-xl shadow p-4 mb-2 flex-shrink-0">
-                    <div className="flex flex-row justify-between items-center gap-2">
+                    <div className="flex flex-row justify-between items-center gap-3">
                         <div className="bg-mainColor/10 text-mainColor px-3 py-1 rounded-lg font-semibold text-sm">
                             Question {currentQuestionIndex + 1}/{totalQuestions}
+                        </div>
+                        <div
+                            ref={questionBarRef}
+                            className="hidden shadow-md md:flex overflow-x-auto gap-1 py-1 px-2 scrollbar-thin scrollbar-thumb-red-300 scrollbar-track-red-100"
+                        >
+                            {diaExam.map((question, index) => {
+                                const uniqueKey = question?.id ? `${question.id}-${index}` : `question-${index}`;
+                                return (
+                                    <button
+                                        key={uniqueKey}
+                                        onClick={() => setCurrentQuestionIndex(index)}
+                                        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-semibold transition-all duration-200 transform hover:scale-105
+                                            ${index === currentQuestionIndex
+                                                ? 'bg-mainColor text-white shadow'
+                                                : question && answers[question.id]
+                                                    ? 'bg-green-500 text-white shadow'
+                                                    : 'bg-white border border-gray-300 text-gray-700 hover:border-mainColor hover:text-mainColor'
+                                            } text-sm`}
+                                    >
+                                        {index + 1}
+                                    </button>
+                                );
+                            })}
                         </div>
                         <div className="flex items-center gap-2 bg-mainColor/10 px-3 py-1 rounded-lg">
                             <FaClock className="text-mainColor text-sm" />
@@ -497,7 +521,7 @@ const Exam = () => {
                             </span>
                         </div>
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-2 md:hidden">
                         <div className="flex gap-3 mb-1">
                             <span className="text-xs text-gray-600 font-medium">Questions:</span>
                             <span className="text-xs text-gray-600">
@@ -530,8 +554,9 @@ const Exam = () => {
                     </div>
                 </div>
 
+
                 {/* Main Content */}
-                <div className="bg-white rounded-xl shadow flex-1 flex flex-col">
+                <div className="bg-white rounded-xl max-h-screen shadow flex-1 flex flex-col">
                     <div className="flex flex-col lg:flex-row">
                         {/* Question Section */}
                         <div className="lg:w-3/4 p-2 border-r border-gray-200 flex-1">
@@ -543,7 +568,7 @@ const Exam = () => {
                                     <img
                                         src={currentQuestion.q_image}
                                         alt={`Question ${currentQuestionIndex + 1}`}
-                                        className="w-full h-auto max-h-64 object-fit rounded-lg"
+                                        className="w-full h-auto  md:h-96  object-fit rounded-lg"
                                     />
                                 </div>
                             ) : (
@@ -734,7 +759,7 @@ const Exam = () => {
                                                             placeholder="Num"
                                                             className="w-12 px-2 py-1 border border-purple-300 rounded text-center text-sm font-semibold"
                                                         />
-                                                         %
+                                                        %
                                                         <input
                                                             type="number"
                                                             value={fractionNum}
@@ -787,8 +812,14 @@ const Exam = () => {
                         <FaChevronLeft className="text-xs" />
                         Previous
                     </button>
-                    <div className="text-xs text-gray-500 font-medium">
+                    {/* <div className="text-xs text-gray-500 font-medium">
                         Question {currentQuestionIndex + 1}/{totalQuestions}
+                    </div> */}
+                    <div className="flex gap-3 mb-1">
+                        <span className="text-xs text-gray-600 font-medium">Questions:</span>
+                        <span className="text-xs text-gray-600">
+                            {Object.keys(answers).length}/{totalQuestions} answered
+                        </span>
                     </div>
                     {isLastQuestion ? (
                         <button

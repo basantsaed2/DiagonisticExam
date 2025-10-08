@@ -54,8 +54,8 @@ export const router = createBrowserRouter(
       ],
     },
   ]
-  ,
-  {
-    basename: "/diagnoistic_exam",
-  }
+  // ,
+  // {
+  //   basename: "/diagnoistic_exam",
+  // }
 );

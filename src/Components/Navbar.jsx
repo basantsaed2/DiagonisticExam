@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut } from 'lucide-react';
-import { FaUser } from 'react-icons/fa'; // Import FaUser icon from react-icons
+import { FaUser } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // Add useLocation
 import mainLogo from '../assets/Images/mainLogo.png';
 import { useAuth } from '../Context/Auth';
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const location = useLocation(); // Add this hook
     const user = useSelector(state => state.user?.data);
     const [pages] = useState(['/', '/signup', '/forget_password']);
     const auth = useAuth();
@@ -28,9 +29,24 @@ const Navbar = () => {
 
     const { t } = useTranslation();
 
+    // Check if current path should hide navbar
+    const shouldHideNavbar = () => {
+        // Exact path matches
+        if (pages.some(page => location.pathname === page)) {
+            return true;
+        }
+        
+        // Hide for all exam routes (using regex)
+        if (location.pathname.startsWith('/exam/')) {
+            return true;
+        }
+        
+        return false;
+    };
+
     return (
         <>
-            {pages.some(page => location.pathname === page) ? null : (
+            {shouldHideNavbar() ? null : (
                 <nav className="shadow-lg relative z-40 bg-white text-mainColor">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between h-16">
